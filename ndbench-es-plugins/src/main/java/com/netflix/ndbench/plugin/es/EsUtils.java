@@ -21,22 +21,6 @@ public class EsUtils {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final MediaType XML = MediaType.parse("application/xml; charset=utf-8");
 
-    private static final OkHttpClient httpClient = new OkHttpClient();
-
-    public static String httpGet(String url) throws IOException {
-        Request request = new Request.Builder().url(url).get().build();
-        Response response = httpClient.newCall(request).execute();
-
-        if (response.code() != 200 && response.code() != 201) {
-            String message = "Unable to read data from " + url + " response code was: " + response.code();
-            logger.error(message);
-            throw new IOException(message);
-        }
-
-        return response.body().string();
-    }
-
-
     public static Map<String, Object> createDefaultDocument(DataGenerator dataGenerator) {
         Map<String, Object> defaultDocument = new HashMap<>();
 

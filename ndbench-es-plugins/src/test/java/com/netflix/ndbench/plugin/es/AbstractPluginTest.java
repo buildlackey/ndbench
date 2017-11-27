@@ -9,15 +9,11 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.util.List;
 
+import com.netflix.ndbench.api.plugin.DataGenerator;
+
 
 /**
- * Enables integration tests to run such  that Docker container initialization can be short circuited in favor
- * of running a full Elasticsearch distribution locally, where such distribution is listening on standard ports
- * (9200 for REST and 9300 for transport.)
- * <p>
- * To suppress start up of Elasticsearch in Docker, set the environment variable  ES_NDBENCH_NO_DOCKER.
- * The main reason you would want to do this is because the current Docker configuration has some issues with
- * being run so that requests can be routed through an HTTP traffic proxy -- which is useful for debugging.
+ * Provides test fixtures for tests that need {@link IConfiguration} or {@link IEsConfig} instances.
  */
 public class AbstractPluginTest {
     private static final Logger logger = LoggerFactory.getLogger(AbstractPluginTest.class);
@@ -230,5 +226,45 @@ public class AbstractPluginTest {
 
         };
     }
+
+    static EsRestPlugin getPlugin(String forcedHostName,
+                                  String indexName,
+                                  boolean isBulkWrite,
+                                  int indexRollsPerDay,
+                                  int portNum) throws Exception {
+        IEsConfig config =
+                getConfig(portNum, forcedHostName, indexName, isBulkWrite, 0f, indexRollsPerDay);
+        EsRestPlugin plugin =
+                new EsRestPlugin(
+                        getCoreConfig(0, false, 60, 10, 10, 0.01f),
+                        config,
+                        new MockServiceDiscoverer(9200),
+                        false);
+        plugin.init(alwaysSameValueGenerator);
+        return plugin;
+    }
+
+
+    protected static DataGenerator alwaysSameValueGenerator = new DataGenerator() {
+        @Override
+        public String getRandomString() {
+            return "hello";
+        }
+
+        @Override
+        public String getRandomValue() {
+            return "hello";
+        }
+
+        @Override
+        public Integer getRandomInteger() {
+            return 1;
+        }
+
+        @Override
+        public Integer getRandomIntegerValue() {
+            return 1;
+        }
+    };
 }
 
