@@ -1,0 +1,37 @@
+/*
+failed attempt to depend on .war file based on this thread:
+    https://discuss.gradle.org/t/how-to-depend-on-war-file-built-by-project-not-the-jar-file/19122/3
+
+
+configurations {
+    war {}
+}
+
+artifacts {
+    war tasks.war
+}
+
+dependencies {
+    project(path: ':ndbench-web', configuration: 'war')
+}
+
+
+also tried this suggestion, with no success:
+    https://discuss.gradle.org/t/how-do-i-reference-a-dependencys-artifact/6447/2
+
+dependencies {
+    application project(path: ':ndbench-web', configuration: 'archives')
+}
+
+task show {
+    doLast {
+        println 'Hello world!'
+
+        configurations.application.each {
+            println it
+        }
+    }
+}
+ */
+
+

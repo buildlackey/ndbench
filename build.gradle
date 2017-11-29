@@ -70,4 +70,29 @@ subprojects {
       compile  'javax.inject:javax.inject:1'
 
     }
+
+    sourceSets {
+      integtest {
+        java {
+          compileClasspath += main.output
+          runtimeClasspath += main.output
+          srcDir 'src/integtest/java'
+        }
+      }
+    }
+    
+    configurations {
+        integtestCompile.extendsFrom testCompile
+        integtestRuntime.extendsFrom testRuntime
+    }
+
+    task integtest(type: Test, dependsOn: integtestClasses) {
+      testClassesDirs = files(sourceSets.integtest.output.classesDirs )
+      classpath = sourceSets.integtest.runtimeClasspath
+    }
+
+
+    check.dependsOn integtest
+    integtest.mustRunAfter assemble
 }
+
