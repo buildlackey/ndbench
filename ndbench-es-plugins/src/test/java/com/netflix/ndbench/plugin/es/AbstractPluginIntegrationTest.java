@@ -24,49 +24,12 @@ import java.io.IOException;
  * being run so that requests can be routed through an HTTP traffic proxy -- which is useful for debugging.
  */
 public class AbstractPluginIntegrationTest extends AbstractPluginTest {
-    static final String ELASTICSEARCH = "elasticsearch";
     private static final Logger logger = LoggerFactory.getLogger(AbstractPluginIntegrationTest.class);
 
-    /**
-     * Temporarily shut off mechanism to  detect if docker and docker-compose are not available or not. If these
-     * are not available, then we will disable running integration / smoke tests. Docker, and (even more likely)
-     * docker-compose may be unavailable in some  Jenkins and Travis CI environments.
-     */
-    protected static boolean disableDueToDockerExecutableUnavailability = false;
-
-    static {
-        verifyAvailabilityOfExecutable("docker");
-        verifyAvailabilityOfExecutable("docker-compose");
-    }
-
-    private static void verifyAvailabilityOfExecutable(String command) {
-        try {
-            Process proc = Runtime.getRuntime().exec(command);
-            if (! IOUtils.toString(proc.getInputStream()).contains("docker") )
-                disableDueToDockerExecutableUnavailability = true;
-        } catch (IOException e) {
-            disableDueToDockerExecutableUnavailability = true;
-        }
-    }
+    static DockerContainerHelper dockerContainerHelper = new DockerContainerHelper();
 
     @ClassRule
-    public static DockerComposeRule docker = getDockerComposeRule();
-
-    private static ImmutableDockerComposeRule getDockerComposeRule() {
-        if (disableDueToDockerExecutableUnavailability) {
-            return null;
-        }
-        if (StringUtils.isNotEmpty(System.getenv("ES_NDBENCH_NO_DOCKER"))) {
-            return null;
-        }
-
-        return DockerComposeRule.builder()
-                .file("src/test/resources/docker-compose-elasticsearch.yml")
-                .projectName(ProjectName.random())
-                .waitingForService(ELASTICSEARCH, HealthChecks.toHaveAllPortsOpen())
-                .build();
-    }
-
+    public static DockerComposeRule docker = dockerContainerHelper.getDockerComposeRule();
 
     protected static DataGenerator alwaysSameValueGenerator = new DataGenerator() {
         @Override

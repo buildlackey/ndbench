@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.*;
 
 /**
- * Verifies behavior of ES REST plugin by bringing up Elastic search in a docker container and operating against that
- * instance..
+ * Verifies behavior of ES REST plugin by bringing up Elastic search in a docker container and operating
+ * against that instance..
  */
 @RunWith(GovernatorJunit4ClassRunner.class)
 @ModulesForTesting({})
@@ -58,7 +58,7 @@ public class EsRestPluginIntegrationTest extends AbstractPluginIntegrationTest {
 
     @BeforeClass
     public static void initialize() throws Exception {
-        if (disableDueToDockerExecutableUnavailability) {
+        if (dockerContainerHelper.disableDueToDockerExecutableUnavailability) {
             return;
         }
         if (StringUtils.isNotEmpty(System.getenv("ES_NDBENCH_NO_DOCKER"))) {
@@ -76,7 +76,7 @@ public class EsRestPluginIntegrationTest extends AbstractPluginIntegrationTest {
 
     @AfterClass
     public static void tearDown() throws Exception {
-        if (disableDueToDockerExecutableUnavailability) {
+        if (dockerContainerHelper.disableDueToDockerExecutableUnavailability) {
             return;
         }
         if (StringUtils.isNotEmpty(System.getenv("ES_NDBENCH_NO_DOCKER"))) {
@@ -88,7 +88,7 @@ public class EsRestPluginIntegrationTest extends AbstractPluginIntegrationTest {
 
     @Test
     public void testCanReadWhatWeJustWrote() throws Exception {
-        if (disableDueToDockerExecutableUnavailability) {
+        if (dockerContainerHelper.disableDueToDockerExecutableUnavailability) {
             return
                     ;
         }
@@ -147,6 +147,5 @@ public class EsRestPluginIntegrationTest extends AbstractPluginIntegrationTest {
 
         assert plugin.readSingle("the-key").equals(EsRestPlugin.RESULT_OK);
     }
-
 }
 
