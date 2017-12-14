@@ -34,7 +34,7 @@ public class EsRestPluginIntegrationTest extends AbstractPluginIntegrationTest {
 
     @AfterClass
     public static void tearDown() throws Exception {
-        dockerContainerHelper.tearDown(docker);
+        dockerContainerHelper.tearDown(docker, ELASTICSEARCH);
     }
 
     @Test

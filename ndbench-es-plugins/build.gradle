@@ -5,16 +5,12 @@ dependencies {
     compile project(':ndbench-api')
     compile project(':ndbench-core')
     compile 'org.elasticsearch:elasticsearch:2.3.3'
+
+    testCompile project(':ndbench-integ-tests')
 }
 
 
 
-repositories {
-    mavenCentral()
-    maven {
-        url 'https://dl.bintray.com/palantir/releases' // docker-compose-rule is published on bintray
-    }
-}
 
 
 dependencies {

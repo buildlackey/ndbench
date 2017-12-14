@@ -30,6 +30,13 @@ allprojects {
 
 
 subprojects {
+    repositories {
+        mavenCentral()
+        maven {
+            // This dependency required by both integ-tests and es-plugins
+            url 'https://dl.bintray.com/palantir/releases' // docker-compose-rule is published on bintray
+        }
+    }
     apply plugin: 'nebula.netflixoss'
     apply plugin: 'java'
     apply plugin: 'idea'

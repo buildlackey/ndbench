@@ -1,36 +1,37 @@
-package com.netflix.ndbench.plugin.es;
+package com.netflix.ndbench.test;
 
 
-import com.netflix.governator.guice.test.ModulesForTesting;
-import com.netflix.governator.guice.test.junit4.GovernatorJunit4ClassRunner;
-import org.apache.commons.lang.StringUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+
+import com.palantir.docker.compose.configuration.ProjectName;
+import com.palantir.docker.compose.connection.waiting.HealthChecks;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+
+
+import org.apache.commons.lang.StringUtils;
 
 import java.util.concurrent.*;
 
 
-import com.netflix.ndbench.api.plugin.DataGenerator;
-import java.io.IOException;
 import com.palantir.docker.compose.DockerComposeRule;
 import com.palantir.docker.compose.ImmutableDockerComposeRule;
-import com.palantir.docker.compose.configuration.ProjectName;
-import com.palantir.docker.compose.connection.waiting.HealthChecks;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.junit.ClassRule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Supports integration testing by bringing up docker containers according to docker-compose specification.
  *
- * Allows integration tests to run such  that Docker container initialization can be short circuited in favor
- * of running a full Elasticsearch distribution locally, where such distribution is listening on standard ports
+ * Since Docker and Docker-compose are not guaranteed to be available all test methods that use this class should
+ * verify that {@link #disableDueToDockerExecutableUnavailability} is false before proceeding with their test
+ * logic.
+ *
+ * This class enables integration tests to run such  that Docker container initialization can be short circuited
+ * in favor of running a full Elasticsearch distribution locally, where such distribution is listening on standard ports
  * (9200 for REST and 9300 for transport.)
  * <p>
  * To suppress start up of Elasticsearch in Docker, set the environment variable  ES_NDBENCH_NO_DOCKER.
@@ -38,7 +39,6 @@ import org.slf4j.LoggerFactory;
  * being run so that requests can be routed through an HTTP traffic proxy -- which is useful for debugging.
  */
 public class DockerContainerHelper {
-    static final String ELASTICSEARCH = "elasticsearch";
     private static final Logger logger = LoggerFactory.getLogger(DockerContainerHelper.class);
 
     private static volatile Boolean isCanceled = false;
@@ -48,7 +48,7 @@ public class DockerContainerHelper {
      * are not available, then we will disable running integration / smoke tests. Docker, and (even more likely)
      * docker-compose may be unavailable in some  Jenkins and Travis CI environments.
      */
-    protected static boolean disableDueToDockerExecutableUnavailability = false;
+    public static volatile boolean disableDueToDockerExecutableUnavailability = false;
 
     static {
         verifyAvailabilityOfExecutable("docker");
@@ -70,7 +70,7 @@ public class DockerContainerHelper {
         }
     }
 
-    static ImmutableDockerComposeRule getDockerComposeRule() {
+    public static ImmutableDockerComposeRule getDockerComposeRule(String serviceName) {
         if (disableDueToDockerExecutableUnavailability) {
             return null;
         }
@@ -79,9 +79,9 @@ public class DockerContainerHelper {
         }
 
         return DockerComposeRule.builder()
-                .file("src/test/resources/docker-compose-elasticsearch.yml")
+                .file("src/test/resources/docker-compose.yml")
                 .projectName(ProjectName.random())
-                .waitingForService(ELASTICSEARCH, HealthChecks.toHaveAllPortsOpen())
+                .waitingForService(serviceName, HealthChecks.toHaveAllPortsOpen())
                 .build();
     }
 
@@ -100,7 +100,7 @@ public class DockerContainerHelper {
                 while (! isCanceled ) {
                     logger.info("Checking if we can connect to elasticsearch (IGNORE EXCEPTIONS, PLEASE)");
                     try {
-                        if (StringUtils.isNotEmpty(EsUtils.httpGet("http://localhost:9200"))) {
+                        if (StringUtils.isNotEmpty(httpGet("http://localhost:9200"))) {
                             logger.info("connection to elasticsearch succeeded !");
                             return true;           // success -- break out of loop
                         }
@@ -111,6 +111,21 @@ public class DockerContainerHelper {
                 return false;
             }
         });
+    }
+
+    // TODO - this is copied from EsUtils. would be nice to factor out to avoid repetition.
+    private static String httpGet(String url) throws IOException {
+        Request request = new Request.Builder().url(url).get().build();
+        OkHttpClient httpClient = new OkHttpClient();
+        Response response = httpClient.newCall(request).execute();
+
+        if (response.code() != 200 && response.code() != 201) {
+            String message = "Unable to read data from " + url + " response code was: " + response.code();
+            logger.error(message);
+            throw new IOException(message);
+        }
+
+        return response.body().string();
     }
 
 
@@ -131,14 +146,14 @@ public class DockerContainerHelper {
         execSvc.shutdownNow();
     }
 
-    public static void tearDown(DockerComposeRule docker) throws Exception {
+    public static void tearDown(DockerComposeRule docker, String serviceName) throws Exception {
         if (disableDueToDockerExecutableUnavailability) {
             return;
         }
         if (StringUtils.isNotEmpty(System.getenv("ES_NDBENCH_NO_DOCKER"))) {
             return;
         }
-        docker.containers().container(ELASTICSEARCH).stop();
+        docker.containers().container(serviceName).stop();
     }
 
 

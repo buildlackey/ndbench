@@ -1,17 +1,11 @@
 package com.netflix.ndbench.plugin.es;
 
 import com.netflix.ndbench.api.plugin.DataGenerator;
+import com.netflix.ndbench.test.DockerContainerHelper;
 import com.palantir.docker.compose.DockerComposeRule;
-import com.palantir.docker.compose.ImmutableDockerComposeRule;
-import com.palantir.docker.compose.configuration.ProjectName;
-import com.palantir.docker.compose.connection.waiting.HealthChecks;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.junit.ClassRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 
 
 public class AbstractPluginIntegrationTest extends AbstractPluginTest {
@@ -20,7 +14,7 @@ public class AbstractPluginIntegrationTest extends AbstractPluginTest {
     static DockerContainerHelper dockerContainerHelper = new DockerContainerHelper();
 
     @ClassRule
-    public static DockerComposeRule docker = dockerContainerHelper.getDockerComposeRule();
+    public static DockerComposeRule docker = dockerContainerHelper.getDockerComposeRule("elasticsearch");
 
     protected static DataGenerator alwaysSameValueGenerator = new DataGenerator() {
         @Override

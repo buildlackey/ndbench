@@ -34,4 +34,26 @@ task show {
 }
  */
 
+dependencies {
+    // Test dependencies
+    //
+    compile 'junit:junit:4.12'
+    compile 'org.assertj:assertj-core:3.6.2'
+    compile 'org.mockito:mockito-all:1.+'
+
+    // enables junit rule that spins up / tears down a one-node dockerized  elastic search cluster for testing
+    compile 'com.palantir.docker.compose:docker-compose-rule-junit4:0.31.1'
+    compile 'com.palantir.docker.compose:docker-compose-rule-core:0.31.1'
+    //
+
+
+
+    // TODO - dependencies below are also in ndbench-core, or its peer projects.
+    // We need to move these to a common location and specify the dependency only once
+    compile 'commons-io:commons-io:2.4'
+    compile 'com.squareup.okhttp3:okhttp:3.8.0'
+    compile group: 'com.google.code.gson', name: 'gson', version: '2.7'
+}
+
+
 
