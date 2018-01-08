@@ -1,5 +1,6 @@
 package com.netflix.ndbench.plugin.es;
 
+import com.google.common.collect.ImmutableList;
 import com.netflix.ndbench.api.plugin.DataGenerator;
 import com.netflix.ndbench.test.DockerContainerHelper;
 import com.palantir.docker.compose.DockerComposeRule;
@@ -13,8 +14,11 @@ public class AbstractPluginIntegrationTest extends AbstractPluginTest {
 
     static DockerContainerHelper dockerContainerHelper = new DockerContainerHelper();
 
+
     @ClassRule
     public static DockerComposeRule docker = dockerContainerHelper.getDockerComposeRule("elasticsearch");
+
+
 
     protected static DataGenerator alwaysSameValueGenerator = new DataGenerator() {
         @Override
